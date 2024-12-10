@@ -1,0 +1,226 @@
+{
+    "Número de personas que participaran en la sociedad": {
+        "key": "question_xrAOJ5",
+        "type": "number"
+    },
+    "Nombre de la sociedad": {
+        "key": "question_eMbllO",
+        "type": "text"
+    },
+    "Número de acciones": {
+        "key": "question_W24BBa",
+        "type": "number"
+    },
+    "Valor de las acciones": {
+        "key": "question_a9Wggq",
+        "type": "number"
+    },
+    "Dirección exacta de la sociedad": {
+        "key": "question_6LqyyB",
+        "type": "text"
+    },
+    "Objeto de la Sociedad": {
+        "key": "question_7qQzzA",
+        "type": "text"
+    },
+    "Nombre completo del presidente": {
+        "key": "question_bqayyo",
+        "type": "text"
+    },
+    "Profesión del presidente": {
+        "key": "question_AzkGGk",
+        "type": "text"
+    },
+    "Estado civil del presidente": {
+        "key": "question_BavllN",
+        "type": "text"
+    },
+    "En qué nupcias se encuentra actualmente el presidente": {
+        "key": "question_klL11M",
+        "type": "text"
+    },
+    "Tipo de identificación del presidente": {
+        "key": "question_vMR11Q",
+        "type": "text"
+    },
+    "Cédula nacional del presidente": {
+        "key": "question_KzXZZ7",
+        "type": "text"
+    },
+    "Domicilio exacto del presidente": {
+        "key": "question_MX0qQX",
+        "type": "text"
+    },
+    "El presidente formará parte de los socios de la sociedad": {
+        "key": "question_JqyxZd",
+        "type": "text"
+    },
+    "Número de acciones del presidente": {
+        "key": "question_gaB1xd",
+        "type": "number"
+    },
+    "Nombre completo del vicepresidente": {
+        "key": "question_XLjkv4",
+        "type": "text"
+    },
+    "Profesión del vicepresidente": {
+        "key": "question_8q9ygx",
+        "type": "text"
+    },
+    "Estado civil del vicepresidente": {
+        "key": "question_0d4yg6",
+        "type": "text"
+    },
+    "En qué nupcias se encuentra actualmente el vicepresidente": {
+        "key": "question_zjVoRq",
+        "type": "text"
+    },
+    "Tipo de identificación del vicepresidente": {
+        "key": "question_5bNDgd",
+        "type": "text"
+    },
+    "Cédula nacional del vicepresidente": {
+        "key": "question_dE714A",
+        "type": "text"
+    },
+    "Domicilio exacto del vicepresidente": {
+        "key": "question_RxOa6J",
+        "type": "text"
+    },
+    "El vicepresidente formará parte de los socios de la sociedad": {
+        "key": "question_oEJ1aV",
+        "type": "text"
+    },
+    "Número de acciones del vicepresidente": {
+        "key": "question_G6M4jo",
+        "type": "number"
+    },
+    "Nombre completo del secretario": {
+        "key": "question_qL90VG",
+        "type": "text"
+    },
+    "Profesión del secretario": {
+        "key": "question_Q1bPV7",
+        "type": "text"
+    },
+    "Estado civil del secretario": {
+        "key": "question_9B8bQQ",
+        "type": "text"
+    },
+    "Tipo de identificación del secretario": {
+        "key": "question_W2LxzN",
+        "type": "text"
+    },
+    "Cédula nacional del secretario": {
+        "key": "question_a9R7dB",
+        "type": "text"
+    },
+    "Domicilio exacto del secretario": {
+        "key": "question_bqobdL",
+        "type": "text"
+    },
+    "El secretario formará parte de los socios de la sociedad": {
+        "key": "question_EKpErN",
+        "type": "text"
+    },
+    "Número de acciones del secretario": {
+        "key": "question_r5X1bv",
+        "type": "number"
+    },
+    "Nombre completo del tesorero": {
+        "key": "question_2X2ygV",
+        "type": "text"
+    },
+    "Profesión del tesorero": {
+        "key": "question_xrG1Lo",
+        "type": "text"
+    },
+    "Estado civil del tesorero": {
+        "key": "question_Z8xKLy",
+        "type": "text"
+    },
+    "Tipo de identificación del tesorero": {
+        "key": "question_qLyM77",
+        "type": "text"
+    },
+    "Cédula nacional del tesorero": {
+        "key": "question_Q1GWap",
+        "type": "text"
+    },
+    "Domicilio exacto del tesorero": {
+        "key": "question_a9WgPq",
+        "type": "text"
+    },
+    "El tesorero formará parte de los socios de la sociedad": {
+        "key": "question_6LqyzB",
+        "type": "text"
+    },
+    "Número de acciones del tesorero": {
+        "key": "question_7qQzgA",
+        "type": "number"
+    },
+    "Nombre completo del fiscal": {
+        "key": "question_BavlVN",
+        "type": "text"
+    },
+    "Profesión del fiscal": {
+        "key": "question_klL1QM",
+        "type": "text"
+    },
+    "Estado civil del fiscal": {
+        "key": "question_vMR1vQ",
+        "type": "text"
+    },
+    "Tipo de identificación del fiscal": {
+        "key": "question_L98NB1",
+        "type": "text"
+    },
+    "Cédula nacional del fiscal": {
+        "key": "question_prg1Xb",
+        "type": "text"
+    },
+    "Domicilio exacto del fiscal": {
+        "key": "question_gaB1Xd",
+        "type": "text"
+    },
+    "El fiscal formará parte de los socios de la sociedad": {
+        "key": "question_yMORr4",
+        "type": "text"
+    },
+    "Número de acciones del fiscal": {
+        "key": "question_XLjkd4",
+        "type": "number"
+    },
+    "Nombre completo del vocal": {
+        "key": "question_zjVo4q",
+        "type": "text"
+    },
+    "Profesión del vocal": {
+        "key": "question_5bNDod",
+        "type": "text"
+    },
+    "Estado civil del vocal": {
+        "key": "question_dE71XA",
+        "type": "text"
+    },
+    "Tipo de identificación del vocal": {
+        "key": "question_DBLP95",
+        "type": "text"
+    },
+    "Cédula nacional del vocal": {
+        "key": "question_lBp1XW",
+        "type": "text"
+    },
+    "Domicilio exacto del vocal": {
+        "key": "question_OaR9K8",
+        "type": "text"
+    },
+    "El vocal formará parte de los socios de la sociedad": {
+        "key": "question_VGrAXv",
+        "type": "text"
+    },
+    "Número de acciones del vocal": {
+        "key": "question_PpoeLb",
+        "type": "number"
+    }
+}
