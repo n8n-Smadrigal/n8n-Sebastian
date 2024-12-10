@@ -1,0 +1,62 @@
+
+"type": 
+"text"
+},
+"Tipo de identificación del vocal": 
+{
+"key": 
+"question_gearGl",
+"type": 
+"text"
+},
+"Dijite la cédula nacional del vocal": 
+{
+"key": 
+"question_yNMkYB",
+"type": 
+"text"
+},
+"Dijite la cédula de residente nacionalizado del vocal": 
+{
+"key": 
+"question_XrLy0j",
+"type": 
+"text"
+},
+"Dijite el pasaporte del vocal": 
+{
+"key": 
+"question_8zq5xO",
+"type": 
+"text"
+},
+"Dijite la identificacion DIMEX del vocal": 
+{
+"key": 
+"question_07d5ON",
+"type": 
+"text"
+},
+"Domicilio exacto del vocal": 
+{
+"key": 
+"question_zNjvYa",
+"type": 
+"text"
+},
+"El vocal formara parte de los socios de la sociedad": 
+{
+"key": 
+"question_54b5x6",
+"type": 
+"text"
+},
+"Número de acciones del vocal": 
+{
+"key": 
+"question_dNEVxq",
+"type": 
+"text"
+}
+}
+]
