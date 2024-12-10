@@ -1,0 +1,324 @@
+[
+  {
+    "Número de personas que participaran en la sociedad": {
+      "key": "question_QM1y77",
+      "type": "text"
+    },
+    "Nombre de la sociedad": {
+      "key": "question_k9lxNR",
+      "type": "text"
+    },
+    "Número de acciones": {
+      "key": "question_vrMbP0",
+      "type": "text"
+    },
+    "Valor de las acciones": {
+      "key": "question_KezyV8",
+      "type": "text"
+    },
+    "Dirección exacta de la sociedad": {
+      "key": "question_Lz9yPv",
+      "type": "text"
+    },
+    "Objeto de la Sociedad": {
+      "key": "question_pdr9DJ",
+      "type": "text"
+    },
+    "Nombre completo del presidente": {
+      "key": "question_1kX59p",
+      "type": "text"
+    },
+    "Profesión del presidente": {
+      "key": "question_MDXyEM",
+      "type": "text"
+    },
+    "Estado civil del presidente": {
+      "key": "question_JdqYOo",
+      "type": "text"
+    },
+    "En que nupcias se encuentra actualmente el presidente": {
+      "key": "question_gear9O",
+      "type": "text"
+    },
+    "Tipo de identificación del presidente": {
+      "key": "question_yNMkJg",
+      "type": "text"
+    },
+    "Dijite la cédula nacional del presidente": {
+      "key": "question_XrLy4g",
+      "type": "text"
+    },
+    "Dijite la cédula de residente nacionalizado del presidente": {
+      "key": "question_8zq5Z5",
+      "type": "text"
+    },
+    "Dijite el pasaporte del presidente": {
+      "key": "question_07d5ey",
+      "type": "text"
+    },
+    "Dijite  la identificacion DIMEX del presidente": {
+      "key": "question_zNjv7R",
+      "type": "text"
+    },
+    "Domicilio exacto del presidente": {
+      "key": "question_54b5Zo",
+      "type": "text"
+    },
+    "El presidente formara parte de los socios de la sociedad": {
+      "key": "question_dNEV9o",
+      "type": "text"
+    },
+    "Número de acciones del presidente": {
+      "key": "question_YRPy4B",
+      "type": "text"
+    },
+    "Que puesto llevara el siguiente miembro en la sociedad?": {
+      "key": "question_YRPyW5",
+      "type": "text"
+    },
+    "Nombre completo del vicepresidente": {
+      "key": "question_lqBZ6k",
+      "type": "text"
+    },
+    "Profesión del vicepresidente": {
+      "key": "question_RdxlD9",
+      "type": "text"
+    },
+    "Estado civil del vicepresidente": {
+      "key": "question_oDEQ2P",
+      "type": "text"
+    },
+    "En que nupcias se encuentra actualmente el vicepresidente": {
+      "key": "question_GK6yRZ",
+      "type": "text"
+    },
+    "Tipo de Identificación del vicepresidente": {
+      "key": "question_Olay7R",
+      "type": "text"
+    },
+    "Dijite la cédula nacional del vicepresidente": {
+      "key": "question_VjGyzg",
+      "type": "text"
+    },
+    "Dijite la cédula de residente nacionalizado del vicepresidente": {
+      "key": "question_PDpyzV",
+      "type": "text"
+    },
+    "Dijite el pasaporte del vicepresidente": {
+      "key": "question_E5KYx4",
+      "type": "text"
+    },
+    "Dijite la identificacion DIMEX del vicepresidente": {
+      "key": "question_rB5WoN",
+      "type": "text"
+    },
+    "Domicilio exacto del vicepresidente": {
+      "key": "question_4BQdrX",
+      "type": "text"
+    },
+    "El vicepresidente formara parte de los socios de la sociedad": {
+      "key": "question_jbZ2Pa",
+      "type": "text"
+    },
+    "Número de acciones del vicepresidente": {
+      "key": "question_2BX5Pj",
+      "type": "text"
+    },
+    "Si termino el formulario presione SI de lo contrario presione NO": {
+      "key": "question_GK6ydp",
+      "type": "text"
+    },
+    "Nombre completo del secretario": {
+      "key": "question_9XB57Q",
+      "type": "text"
+    },
+    "Profesión del secretario": {
+      "key": "question_eDMPae",
+      "type": "text"
+    },
+    "Estado civil del secretario": {
+      "key": "question_Wr2d8N",
+      "type": "text"
+    },
+    "En que Nupcias se encuentra actualmente el secretario": {
+      "key": "question_ae9o2B",
+      "type": "text"
+    },
+    "Tipo de Identificación del secretario": {
+      "key": "question_6eL5Zk",
+      "type": "text"
+    },
+    "Dijite la cédula nacional del secretario": {
+      "key": "question_7bq5NZ",
+      "type": "text"
+    },
+    "Dijite la cédula de residente nacionalizado del secretario": {
+      "key": "question_b9qGWL",
+      "type": "text"
+    },
+    "Dijite el pasaporte del secretario": {
+      "key": "question_AKz5BD",
+      "type": "text"
+    },
+    "Dijite la identificacion  DIMEX del secretario": {
+      "key": "question_RdxlPd",
+      "type": "text"
+    },
+    "Domicilio exacto del secretario": {
+      "key": "question_BKa5xQ",
+      "type": "text"
+    },
+    "El secretario formara parte de los socios de la sociedad": {
+      "key": "question_oDEQGe",
+      "type": "text"
+    },
+    "Número de acciones del secretario": {
+      "key": "question_GK6ylp",
+      "type": "text"
+    },
+    "Nombre completo del tesorero": {
+      "key": "question_VjGyJJ",
+      "type": "text"
+    },
+    "Profesión del tesorero": {
+      "key": "question_PDpyO5",
+      "type": "text"
+    },
+    "Estado civil del tesorero": {
+      "key": "question_E5KYWX",
+      "type": "text"
+    },
+    "En que nupcias se encuentra actualmente el tesorero": {
+      "key": "question_rB5WPl",
+      "type": "text"
+    },
+    "Tipo de identificación del tesorero": {
+      "key": "question_4BQdrk",
+      "type": "text"
+    },
+    "Dijite la cédula nacional del tesorero": {
+      "key": "question_jbZ2Px",
+      "type": "text"
+    },
+    "Dijite la cédula de residente nacionalizado del tesorero": {
+      "key": "question_2BX5PL",
+      "type": "text"
+    },
+    "Dijite el pasaporte del tesorero": {
+      "key": "question_xjrBYy",
+      "type": "text"
+    },
+    "Dijite la identificacion  DIMEX del tesorero": {
+      "key": "question_Zo8yaz",
+      "type": "text"
+    },
+    "Domicilio exacto del tesorero": {
+      "key": "question_NDryoB",
+      "type": "text"
+    },
+    "El tesorero formara parte de los socios de la sociedad": {
+      "key": "question_Olay57",
+      "type": "text"
+    },
+    "Número de acciones del tesorero": {
+      "key": "question_qaLeVY",
+      "type": "text"
+    },
+    "Nombre completo del fiscal": {
+      "key": "question_9XB5Qp",
+      "type": "text"
+    },
+    "Profesión del fiscal": {
+      "key": "question_eDMPR0",
+      "type": "text"
+    },
+    "Estado civil del fiscal": {
+      "key": "question_Wr2dzj",
+      "type": "text"
+    },
+    "En que nupcias se encuentra actualmente el fiscal": {
+      "key": "question_ae9odv",
+      "type": "text"
+    },
+    "Tipo de identificación del fiscal": {
+      "key": "question_6eL5NP",
+      "type": "text"
+    },
+    "Dijite la cédula nacional del fiscal": {
+      "key": "question_7bq5xP",
+      "type": "text"
+    },
+    "Dijite la cédula de residente nacionalizado del fiscal": {
+      "key": "question_b9qGdg",
+      "type": "text"
+    },
+    "Dijite el pasaporte del fiscal": {
+      "key": "question_AKz5v0",
+      "type": "text"
+    },
+    "Dijite la identificación DIMEX del fiscal": {
+      "key": "question_BKa575",
+      "type": "text"
+    },
+    "Domicilio exacto del fiscal": {
+      "key": "question_k9lxE1",
+      "type": "text"
+    },
+    "El fiscal formara parte de los socios de la sociedad": {
+      "key": "question_vrMbYv",
+      "type": "text"
+    },
+    "Número de acciones del fiscal": {
+      "key": "question_Kezy1A",
+      "type": "text"
+    },
+    "Nombre completo del vocal": {
+      "key": "question_pdr9Oq",
+      "type": "text"
+    },
+    "Profesión del vocal": {
+      "key": "question_1kX5VQ",
+      "type": "text"
+    },
+    "Estado civil del vocal": {
+      "key": "question_MDXyRp",
+      "type": "text"
+    },
+    "En que nupcias se encuentra actualmente el vocal": {
+      "key": "question_JdqYz4",
+      "type": "text"
+    },
+    "Tipo de identificación del vocal": {
+      "key": "question_gearGl",
+      "type": "text"
+    },
+    "Dijite la cédula nacional del vocal": {
+      "key": "question_yNMkYB",
+      "type": "text"
+    },
+    "Dijite la cédula de residente nacionalizado del vocal": {
+      "key": "question_XrLy0j",
+      "type": "text"
+    },
+    "Dijite el pasaporte del vocal": {
+      "key": "question_8zq5xO",
+      "type": "text"
+    },
+    "Dijite la identificacion  DIMEX del vocal": {
+      "key": "question_07d5ON",
+      "type": "text"
+    },
+    "Domicilio exacto del vocal": {
+      "key": "question_zNjvYa",
+      "type": "text"
+    },
+    "El vocal formara parte de los socios de la sociedad": {
+      "key": "question_54b5x6",
+      "type": "text"
+    },
+    "Número de acciones del vocal": {
+      "key": "question_dNEVxq",
+      "type": "text"
+    }
+  }
+]
