@@ -48,6 +48,7 @@ import { useTelemetry } from '@/composables/useTelemetry';
 import { importCurlEventBus, ndvEventBus } from '@/event-bus';
 import { ProjectTypes } from '@/types/projects.types';
 import { updateDynamicConnections } from '@/utils/nodeSettingsUtils';
+import FreeAiCreditsCallout from '@/components/FreeAiCreditsCallout.vue';
 
 const props = withDefaults(
 	defineProps<{
@@ -162,7 +163,7 @@ const executeButtonTooltip = computed(() => {
 		node.value &&
 		isLatestNodeVersion.value &&
 		props.inputSize > 1 &&
-		!NodeHelpers.isSingleExecution(node.value.type, node.value.parameters)
+		!nodeHelpers.isSingleExecution(node.value.type, node.value.parameters)
 	) {
 		return i18n.baseText('nodeSettings.executeButtonTooltip.times', {
 			interpolate: { inputSize: props.inputSize },
@@ -764,7 +765,7 @@ const credentialSelected = (updateInformation: INodeUpdatePropertiesInformation)
 
 const nameChanged = (name: string) => {
 	if (node.value) {
-		historyStore.pushCommandToUndo(new RenameNodeCommand(node.value.name, name));
+		historyStore.pushCommandToUndo(new RenameNodeCommand(node.value.name, name, Date.now()));
 	}
 	valueChanged({
 		value: name,
@@ -1026,6 +1027,7 @@ onBeforeUnmount(() => {
 					})
 				"
 			/>
+			<FreeAiCreditsCallout />
 			<div v-show="openPanel === 'params'">
 				<NodeWebhooks :node="node" :node-type-description="nodeType" />
 

@@ -27,7 +27,7 @@ import {
 	mapLegacyConnectionsToCanvasConnections,
 	mapLegacyEndpointsToCanvasConnectionPort,
 	parseCanvasConnectionHandleString,
-} from '@/utils/canvasUtilsV2';
+} from '@/utils/canvasUtils';
 import type {
 	ExecutionStatus,
 	ExecutionSummary,
@@ -37,19 +37,19 @@ import type {
 	ITaskData,
 	Workflow,
 } from 'n8n-workflow';
-import { NodeConnectionType, NodeHelpers, SEND_AND_WAIT_OPERATION } from 'n8n-workflow';
-import type { INodeUi } from '@/Interface';
 import {
-	CUSTOM_API_CALL_KEY,
-	FORM_NODE_TYPE,
-	STICKY_NODE_TYPE,
-	WAIT_NODE_TYPE,
-	WAIT_TIME_UNLIMITED,
-} from '@/constants';
+	NodeConnectionType,
+	NodeHelpers,
+	SEND_AND_WAIT_OPERATION,
+	WAIT_INDEFINITELY,
+} from 'n8n-workflow';
+import type { INodeUi } from '@/Interface';
+import { CUSTOM_API_CALL_KEY, FORM_NODE_TYPE, STICKY_NODE_TYPE, WAIT_NODE_TYPE } from '@/constants';
 import { sanitizeHtml } from '@/utils/htmlUtils';
 import { MarkerType } from '@vue-flow/core';
 import { useNodeHelpers } from './useNodeHelpers';
 import { getTriggerNodeServiceName } from '@/utils/nodeTypesUtils';
+import { useNodeDirtiness } from '@/composables/useNodeDirtiness';
 
 export function useCanvasMapping({
 	nodes,
@@ -64,6 +64,7 @@ export function useCanvasMapping({
 	const workflowsStore = useWorkflowsStore();
 	const nodeTypesStore = useNodeTypesStore();
 	const nodeHelpers = useNodeHelpers();
+	const { dirtinessByName } = useNodeDirtiness();
 
 	function createStickyNoteRenderType(node: INodeUi): CanvasNodeStickyNoteRender {
 		return {
@@ -98,6 +99,7 @@ export function useCanvasMapping({
 					labelSize: nodeOutputLabelSizeById.value[node.id],
 				},
 				tooltip: nodeTooltipById.value[node.id],
+				dirtiness: dirtinessByName.value[node.name],
 			},
 		};
 	}
@@ -132,16 +134,6 @@ export function useCanvasMapping({
 			acc[node.id] = nodeTypesStore.isTriggerNode(node.type);
 			return acc;
 		}, {}),
-	);
-
-	const activeTriggerNodeCount = computed(
-		() =>
-			nodes.value.filter(
-				(node) =>
-					nodeTypeDescriptionByNodeId.value[node.id]?.eventTriggerDescription !== '' &&
-					isTriggerNodeById.value[node.id] &&
-					!node.disabled,
-			).length,
 	);
 
 	const nodeSubtitleById = computed(() => {
@@ -256,13 +248,28 @@ export function useCanvasMapping({
 		}, {}),
 	);
 
-	const nodeTooltipById = computed(() =>
-		nodes.value.reduce<Record<string, string | undefined>>((acc, node) => {
+	const nodeTooltipById = computed(() => {
+		if (!workflowsStore.isWorkflowRunning) {
+			return {};
+		}
+
+		const activeTriggerNodeCount = nodes.value.filter(
+			(node) => isTriggerNodeById.value[node.id] && !node.disabled,
+		).length;
+		const triggerNodeName = workflowsStore.getWorkflowExecution?.triggerNode;
+
+		// For workflows with multiple active trigger nodes, we show a tooltip only when
+		// trigger node name is known
+		if (triggerNodeName === undefined && activeTriggerNodeCount !== 1) {
+			return {};
+		}
+
+		return nodes.value.reduce<Record<string, string | undefined>>((acc, node) => {
 			const nodeTypeDescription = nodeTypeDescriptionByNodeId.value[node.id];
 			if (nodeTypeDescription && isTriggerNodeById.value[node.id]) {
 				if (
-					activeTriggerNodeCount.value !== 1 ||
-					!workflowsStore.isWorkflowRunning ||
+					!!node.disabled ||
+					(triggerNodeName !== undefined && triggerNodeName !== node.name) ||
 					!['new', 'unknown', 'waiting'].includes(nodeExecutionStatusById.value[node.id])
 				) {
 					return acc;
@@ -284,8 +291,8 @@ export function useCanvasMapping({
 			}
 
 			return acc;
-		}, {}),
-	);
+		}, {});
+	});
 
 	const nodeExecutionRunningById = computed(() =>
 		nodes.value.reduce<Record<string, boolean>>((acc, node) => {
@@ -374,7 +381,7 @@ export function useCanvasMapping({
 			} else if (nodePinnedDataById.value[node.id]) {
 				acc[node.id] = false;
 			} else {
-				acc[node.id] = Object.keys(node?.issues ?? {}).length > 0;
+				acc[node.id] = nodeIssuesById.value[node.id].length > 0;
 			}
 
 			return acc;
@@ -419,7 +426,7 @@ export function useCanvasMapping({
 
 					const waitDate = new Date(workflowExecution.waitTill);
 
-					if (waitDate.toISOString() === WAIT_TIME_UNLIMITED) {
+					if (waitDate.getTime() === WAIT_INDEFINITELY.getTime()) {
 						acc[node.id] = i18n.baseText(
 							'node.theNodeIsWaitingIndefinitelyForAnIncomingWebhookCall',
 						);
@@ -615,7 +622,7 @@ export function useCanvasMapping({
 	}
 
 	function getConnectionLabel(connection: CanvasConnection): string {
-		const fromNode = nodes.value.find((node) => node.name === connection.data?.fromNodeName);
+		const fromNode = nodes.value.find((node) => node.name === connection.data?.source.node);
 		if (!fromNode) {
 			return '';
 		}
@@ -647,6 +654,8 @@ export function useCanvasMapping({
 	return {
 		additionalNodePropertiesById,
 		nodeExecutionRunDataOutputMapById,
+		nodeIssuesById,
+		nodeHasIssuesById,
 		connections: mappedConnections,
 		nodes: mappedNodes,
 	};

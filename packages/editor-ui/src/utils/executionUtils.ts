@@ -1,10 +1,11 @@
-import {
-	SEND_AND_WAIT_OPERATION,
-	type ExecutionStatus,
-	type IDataObject,
-	type INode,
-	type IPinData,
-	type IRunData,
+import { SEND_AND_WAIT_OPERATION, TRIMMED_TASK_DATA_CONNECTIONS_KEY } from 'n8n-workflow';
+import type {
+	ITaskData,
+	ExecutionStatus,
+	IDataObject,
+	INode,
+	IPinData,
+	IRunData,
 } from 'n8n-workflow';
 import type { ExecutionFilterType, ExecutionsQueryFilter, INodeUi } from '@/Interface';
 import { isEmpty } from '@/utils/typesUtils';
@@ -82,33 +83,29 @@ export const executionFilterToQueryFilter = (
 	return queryFilter;
 };
 
-let formPopupWindow: Window | null = null;
+let formPopupWindow: boolean = false;
 
 export const openFormPopupWindow = (url: string) => {
-	if (!formPopupWindow || formPopupWindow.closed) {
+	if (!formPopupWindow) {
 		const height = 700;
 		const width = window.innerHeight - 50;
 		const left = (window.innerWidth - height) / 2;
 		const top = 50;
 		const features = `width=${height},height=${width},left=${left},top=${top},resizable=yes,scrollbars=yes`;
 		const windowName = `form-waiting-since-${Date.now()}`;
-		formPopupWindow = window.open(url, windowName, features);
-	} else {
-		formPopupWindow.location = url;
-		formPopupWindow.focus();
+		window.open(url, windowName, features);
+		formPopupWindow = true;
 	}
 };
 
-export const closeFormPopupWindow = () => {
-	formPopupWindow?.close();
-	formPopupWindow = null;
-};
+export const clearPopupWindowState = () => (formPopupWindow = false);
 
 export function displayForm({
 	nodes,
 	runData,
 	pinData,
 	destinationNode,
+	triggerNode,
 	directParentNodes,
 	source,
 	getTestUrl,
@@ -117,11 +114,14 @@ export function displayForm({
 	runData: IRunData | undefined;
 	pinData: IPinData;
 	destinationNode: string | undefined;
+	triggerNode: string | undefined;
 	directParentNodes: string[];
 	source: string | undefined;
 	getTestUrl: (node: INode) => string;
 }) {
 	for (const node of nodes) {
+		if (triggerNode !== undefined && triggerNode !== node.name) continue;
+
 		const hasNodeRun = runData && runData?.hasOwnProperty(node.name);
 
 		if (hasNodeRun || pinData[node.name]) continue;
@@ -134,7 +134,10 @@ export function displayForm({
 		if (node.name === destinationNode || !node.disabled) {
 			let testUrl = '';
 			if (node.type === FORM_TRIGGER_NODE_TYPE) testUrl = getTestUrl(node);
-			if (testUrl && source !== 'RunData.ManualChatMessage') openFormPopupWindow(testUrl);
+			if (testUrl && source !== 'RunData.ManualChatMessage') {
+				clearPopupWindowState();
+				openFormPopupWindow(testUrl);
+			}
 		}
 	}
 }
@@ -185,3 +188,25 @@ export const waitingNodeTooltip = (node: INodeUi | null | undefined) => {
 
 	return '';
 };
+
+/**
+ * Check whether task data contains a trimmed item.
+ *
+ * In manual executions in scaling mode, the payload in push messages may be
+ * arbitrarily large. To protect Redis as it relays run data from workers to
+ * main process, we set a limit on payload size. If the payload is oversize,
+ * we replace it with a placeholder, which is later overridden on execution
+ * finish, when the client receives the full data.
+ */
+export function hasTrimmedItem(taskData: ITaskData[]) {
+	return taskData[0]?.data?.main?.[0]?.[0]?.json?.[TRIMMED_TASK_DATA_CONNECTIONS_KEY] ?? false;
+}
+
+/**
+ * Check whether run data contains any trimmed items.
+ *
+ * See {@link hasTrimmedItem} for more details.
+ */
+export function hasTrimmedData(runData: IRunData) {
+	return Object.keys(runData).some((nodeName) => hasTrimmedItem(runData[nodeName]));
+}

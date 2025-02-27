@@ -1,20 +1,28 @@
 <script lang="ts" setup>
-import type {
-	CanvasConnection,
-	CanvasNode,
-	CanvasNodeMoveEvent,
-	CanvasEventBusEvents,
-	ConnectStartEvent,
+import {
+	type CanvasConnection,
+	type CanvasNode,
+	type CanvasNodeMoveEvent,
+	type CanvasEventBusEvents,
+	type ConnectStartEvent,
+	CanvasNodeRenderType,
 } from '@/types';
-import type { Connection, XYPosition, NodeDragEvent, GraphNode } from '@vue-flow/core';
+import type {
+	Connection,
+	XYPosition,
+	NodeDragEvent,
+	NodeMouseEvent,
+	GraphNode,
+} from '@vue-flow/core';
 import { useVueFlow, VueFlow, PanelPosition, MarkerType } from '@vue-flow/core';
-import { Background } from '@vue-flow/background';
 import { MiniMap } from '@vue-flow/minimap';
 import Node from './elements/nodes/CanvasNode.vue';
 import Edge from './elements/edges/CanvasEdge.vue';
 import { computed, onMounted, onUnmounted, provide, ref, toRef, useCssModule, watch } from 'vue';
 import type { EventBus } from 'n8n-design-system';
-import { createEventBus, useDeviceSupport } from 'n8n-design-system';
+import { createEventBus } from 'n8n-design-system';
+import { useDeviceSupport } from '@n8n/composables/useDeviceSupport';
+import { useShortKeyPress } from '@n8n/composables/useShortKeyPress';
 import { useContextMenu, type ContextMenuAction } from '@/composables/useContextMenu';
 import { useKeybindings } from '@/composables/useKeybindings';
 import ContextMenu from '@/components/ContextMenu/ContextMenu.vue';
@@ -25,9 +33,10 @@ import { GRID_SIZE } from '@/utils/nodeViewUtils';
 import { CanvasKey } from '@/constants';
 import { onKeyDown, onKeyUp, useThrottleFn } from '@vueuse/core';
 import CanvasArrowHeadMarker from './elements/edges/CanvasArrowHeadMarker.vue';
-import CanvasBackgroundStripedPattern from './elements/CanvasBackgroundStripedPattern.vue';
+import CanvasBackground from './elements/background/CanvasBackground.vue';
 import { useCanvasTraversal } from '@/composables/useCanvasTraversal';
 import { NodeConnectionType } from 'n8n-workflow';
+import { useCanvasNodeHover } from '@/composables/useCanvasNodeHover';
 
 const $style = useCssModule();
 
@@ -35,11 +44,15 @@ const emit = defineEmits<{
 	'update:modelValue': [elements: CanvasNode[]];
 	'update:node:position': [id: string, position: XYPosition];
 	'update:nodes:position': [events: CanvasNodeMoveEvent[]];
-	'update:node:active': [id: string];
+	'update:node:activated': [id: string];
+	'update:node:deactivated': [id: string];
 	'update:node:enabled': [id: string];
-	'update:node:selected': [id: string];
+	'update:node:selected': [id?: string];
 	'update:node:name': [id: string];
 	'update:node:parameters': [id: string, parameters: Record<string, unknown>];
+	'update:node:inputs': [id: string];
+	'update:node:outputs': [id: string];
+	'click:node': [id: string];
 	'click:node:add': [id: string, handle: string];
 	'run:node': [id: string];
 	'delete:node': [id: string];
@@ -65,6 +78,7 @@ const emit = defineEmits<{
 	'run:workflow': [];
 	'save:workflow': [];
 	'create:workflow': [];
+	'drag-and-drop': [position: XYPosition, event: DragEvent];
 }>();
 
 const props = withDefaults(
@@ -77,7 +91,7 @@ const props = withDefaults(
 		readOnly?: boolean;
 		executing?: boolean;
 		keyBindings?: boolean;
-		showBugReportingButton?: boolean;
+		loading?: boolean;
 	}>(),
 	{
 		id: 'canvas',
@@ -88,10 +102,11 @@ const props = withDefaults(
 		readOnly: false,
 		executing: false,
 		keyBindings: true,
+		loading: false,
 	},
 );
 
-const { controlKeyCode } = useDeviceSupport();
+const { isMobileDevice, controlKeyCode } = useDeviceSupport();
 
 const vueFlow = useVueFlow({ id: props.id, deleteKeyCode: null });
 const {
@@ -129,29 +144,58 @@ const isPaneReady = ref(false);
 
 const classes = computed(() => ({
 	[$style.canvas]: true,
-	[$style.ready]: isPaneReady.value,
+	[$style.ready]: !props.loading && isPaneReady.value,
 }));
+
+/**
+ * Panning and Selection key bindings
+ */
+
+// @see https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values#whitespace_keys
+const panningKeyCode = ref<string[] | true>(isMobileDevice ? true : [' ', controlKeyCode]);
+const panningMouseButton = ref<number[] | true>(isMobileDevice ? true : [1]);
+const selectionKeyCode = ref<string | true | null>(isMobileDevice ? 'Shift' : true);
+
+function switchToPanningMode() {
+	selectionKeyCode.value = null;
+	panningMouseButton.value = [0, 1];
+}
+
+function switchToSelectionMode() {
+	selectionKeyCode.value = true;
+	panningMouseButton.value = [1];
+}
+
+onKeyDown(panningKeyCode.value, switchToPanningMode, {
+	dedupe: true,
+});
+
+onKeyUp(panningKeyCode.value, switchToSelectionMode);
+
+/**
+ * Rename node key bindings
+ * We differentiate between short and long press because the space key is also used for activating panning
+ */
+
+const renameKeyCode = ' ';
+
+useShortKeyPress(
+	renameKeyCode,
+	() => {
+		if (lastSelectedNode.value) {
+			emit('update:node:name', lastSelectedNode.value.id);
+		}
+	},
+	{
+		disabled: toRef(props, 'readOnly'),
+	},
+);
 
 /**
  * Key bindings
  */
 
 const disableKeyBindings = computed(() => !props.keyBindings);
-
-/**
- * @see https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values#whitespace_keys
- */
-const panningKeyCode = ref<string[]>([' ', controlKeyCode]);
-const panningMouseButton = ref<number[]>([1]);
-const selectionKeyCode = ref<true | null>(true);
-
-onKeyDown(panningKeyCode.value, () => {
-	selectionKeyCode.value = null;
-});
-
-onKeyUp(panningKeyCode.value, () => {
-	selectionKeyCode.value = true;
-});
 
 function selectLeftNode(id: string) {
 	const incomingNodes = getIncomingNodes(id);
@@ -203,10 +247,11 @@ function selectUpstreamNodes(id: string) {
 
 const keyMap = computed(() => ({
 	ctrl_c: emitWithSelectedNodes((ids) => emit('copy:nodes', ids)),
-	enter: emitWithLastSelectedNode((id) => onSetNodeActive(id)),
+	enter: emitWithLastSelectedNode((id) => onSetNodeActivated(id)),
 	ctrl_a: () => addSelectedNodes(graphNodes.value),
-	'+|=': async () => await onZoomIn(),
-	'-|_': async () => await onZoomOut(),
+	// Support both key and code for zooming in and out
+	'shift_+|+|=|shift_Equal|Equal': async () => await onZoomIn(),
+	'shift+_|-|_|shift_Minus|Minus': async () => await onZoomOut(),
 	0: async () => await onResetZoom(),
 	1: async () => await onFitView(),
 	ArrowUp: emitWithLastSelectedNode(selectUpperSiblingNode),
@@ -215,7 +260,6 @@ const keyMap = computed(() => ({
 	ArrowRight: emitWithLastSelectedNode(selectRightNode),
 	shift_ArrowLeft: emitWithLastSelectedNode(selectUpstreamNodes),
 	shift_ArrowRight: emitWithLastSelectedNode(selectDownstreamNodes),
-	// @TODO implement arrow key shortcuts to modify selection
 
 	...(props.readOnly
 		? {}
@@ -244,6 +288,20 @@ const hasSelection = computed(() => selectedNodes.value.length > 0);
 const selectedNodeIds = computed(() => selectedNodes.value.map((node) => node.id));
 
 const lastSelectedNode = ref<GraphNode>();
+const triggerNodes = computed(() =>
+	props.nodes.filter(
+		(node) =>
+			node.data?.render.type === CanvasNodeRenderType.Default && node.data.render.options.trigger,
+	),
+);
+
+const hoveredTriggerNode = useCanvasNodeHover(triggerNodes, vueFlow, (nodeRect) => ({
+	x: nodeRect.x - nodeRect.width * 2, // should cover the width of trigger button
+	y: nodeRect.y - nodeRect.height,
+	width: nodeRect.width * 4,
+	height: nodeRect.height * 3,
+}));
+
 watch(selectedNodes, (nodes) => {
 	if (!lastSelectedNode.value || !nodes.find((node) => node.id === lastSelectedNode.value?.id)) {
 		lastSelectedNode.value = nodes[nodes.length - 1];
@@ -266,13 +324,27 @@ function onNodeDragStop(event: NodeDragEvent) {
 	onUpdateNodesPosition(event.nodes.map(({ id, position }) => ({ id, position })));
 }
 
+function onNodeClick({ event, node }: NodeMouseEvent) {
+	emit('click:node', node.id);
+
+	if (event.ctrlKey || event.metaKey || selectedNodes.value.length < 2) {
+		return;
+	}
+
+	onSelectNodes({ ids: [node.id] });
+}
+
 function onSelectionDragStop(event: NodeDragEvent) {
 	onUpdateNodesPosition(event.nodes.map(({ id, position }) => ({ id, position })));
 }
 
-function onSetNodeActive(id: string) {
-	props.eventBus.emit('nodes:action', { ids: [id], action: 'update:node:active' });
-	emit('update:node:active', id);
+function onSetNodeActivated(id: string) {
+	props.eventBus.emit('nodes:action', { ids: [id], action: 'update:node:activated' });
+	emit('update:node:activated', id);
+}
+
+function onSetNodeDeactivated(id: string) {
+	emit('update:node:deactivated', id);
 }
 
 function clearSelectedNodes() {
@@ -280,8 +352,7 @@ function clearSelectedNodes() {
 }
 
 function onSelectNode() {
-	if (!lastSelectedNode.value) return;
-	emit('update:node:selected', lastSelectedNode.value.id);
+	emit('update:node:selected', lastSelectedNode.value?.id);
 }
 
 function onSelectNodes({ ids }: CanvasEventBusEvents['nodes:select']) {
@@ -299,6 +370,14 @@ function onDeleteNode(id: string) {
 
 function onUpdateNodeParameters(id: string, parameters: Record<string, unknown>) {
 	emit('update:node:parameters', id, parameters);
+}
+
+function onUpdateNodeInputs(id: string) {
+	emit('update:node:inputs', id);
+}
+
+function onUpdateNodeOutputs(id: string) {
+	emit('update:node:outputs', id);
 }
 
 /**
@@ -350,7 +429,6 @@ const arrowHeadMarkerId = ref('custom-arrow-head');
 
 const edgesHoveredById = ref<Record<string, boolean>>({});
 const edgesBringToFrontById = ref<Record<string, boolean>>({});
-const nodesHoveredById = ref<Record<string, boolean>>({});
 
 onEdgeMouseEnter(({ edge }) => {
 	edgesBringToFrontById.value = { [edge.id]: true };
@@ -381,6 +459,13 @@ onEdgeMouseLeave(({ edge }) => {
 	edgesHoveredById.value = { [edge.id]: false };
 });
 
+function onUpdateEdgeLabelHovered(id: string, hovered: boolean) {
+	edgesBringToFrontById.value = { [id]: true };
+	edgesHoveredById.value[id] = hovered;
+}
+
+const nodesHoveredById = ref<Record<string, boolean>>({});
+
 onNodeMouseEnter(({ node }) => {
 	nodesHoveredById.value = { [node.id]: true };
 });
@@ -388,10 +473,6 @@ onNodeMouseEnter(({ node }) => {
 onNodeMouseLeave(({ node }) => {
 	nodesHoveredById.value = { [node.id]: false };
 });
-
-function onUpdateEdgeHovered(id: string, hovered: boolean) {
-	edgesHoveredById.value[id] = hovered;
-}
 
 /**
  * Executions
@@ -489,6 +570,13 @@ function onOpenContextMenu(event: MouseEvent) {
 	});
 }
 
+function onOpenSelectionContextMenu({ event }: { event: MouseEvent }) {
+	contextMenu.open(event, {
+		source: 'canvas',
+		nodeIds: selectedNodeIds.value,
+	});
+}
+
 function onOpenNodeContextMenu(
 	id: string,
 	event: MouseEvent,
@@ -524,12 +612,26 @@ function onContextMenuAction(action: ContextMenuAction, nodeIds: string[]) {
 		case 'toggle_activation':
 			return emit('update:nodes:enabled', nodeIds);
 		case 'open':
-			return onSetNodeActive(nodeIds[0]);
+			return onSetNodeActivated(nodeIds[0]);
 		case 'rename':
 			return emit('update:node:name', nodeIds[0]);
 		case 'change_color':
 			return props.eventBus.emit('nodes:action', { ids: nodeIds, action: 'update:sticky:color' });
 	}
+}
+
+/**
+ * Drag and drop
+ */
+
+function onDragOver(event: DragEvent) {
+	event.preventDefault();
+}
+
+function onDrop(event: DragEvent) {
+	const position = getProjectedPosition(event);
+
+	emit('drag-and-drop', position, event);
 }
 
 /**
@@ -576,6 +678,14 @@ function onMinimapMouseLeave() {
 }
 
 /**
+ * Window Events
+ */
+
+function onWindowBlur() {
+	switchToSelectionMode();
+}
+
+/**
  * Lifecycle
  */
 
@@ -584,11 +694,15 @@ const initialized = ref(false);
 onMounted(() => {
 	props.eventBus.on('fitView', onFitView);
 	props.eventBus.on('nodes:select', onSelectNodes);
+
+	window.addEventListener('blur', onWindowBlur);
 });
 
 onUnmounted(() => {
 	props.eventBus.off('fitView', onFitView);
 	props.eventBus.off('nodes:select', onSelectNodes);
+
+	window.removeEventListener('blur', onWindowBlur);
 });
 
 onPaneReady(async () => {
@@ -623,6 +737,7 @@ provide(CanvasKey, {
 		:id="id"
 		:nodes="nodes"
 		:edges="connections"
+		:class="classes"
 		:apply-changes="false"
 		:connection-line-options="{ markerEnd: MarkerType.ArrowClosed }"
 		:connection-radius="60"
@@ -632,8 +747,8 @@ provide(CanvasKey, {
 		:snap-grid="[GRID_SIZE, GRID_SIZE]"
 		:min-zoom="0"
 		:max-zoom="4"
-		:class="classes"
 		:selection-key-code="selectionKeyCode"
+		:zoom-activation-key-code="panningKeyCode"
 		:pan-activation-key-code="panningKeyCode"
 		:disable-keyboard-a11y="true"
 		data-test-id="canvas"
@@ -641,11 +756,15 @@ provide(CanvasKey, {
 		@connect="onConnect"
 		@connect-end="onConnectEnd"
 		@pane-click="onClickPane"
-		@contextmenu="onOpenContextMenu"
+		@pane-context-menu="onOpenContextMenu"
 		@move-start="onPaneMoveStart"
 		@move-end="onPaneMoveEnd"
 		@node-drag-stop="onNodeDragStop"
+		@node-click="onNodeClick"
 		@selection-drag-stop="onSelectionDragStop"
+		@selection-context-menu="onOpenSelectionContextMenu"
+		@dragover="onDragOver"
+		@drop="onDrop"
 	>
 		<template #node-canvas-node="nodeProps">
 			<Node
@@ -653,17 +772,24 @@ provide(CanvasKey, {
 				:read-only="readOnly"
 				:event-bus="eventBus"
 				:hovered="nodesHoveredById[nodeProps.id]"
-				:bring-to-front="nodesHoveredById[nodeProps.id]"
+				:nearby-hovered="nodeProps.id === hoveredTriggerNode.id.value"
 				@delete="onDeleteNode"
 				@run="onRunNode"
 				@select="onSelectNode"
 				@toggle="onToggleNodeEnabled"
-				@activate="onSetNodeActive"
+				@activate="onSetNodeActivated"
+				@deactivate="onSetNodeDeactivated"
 				@open:contextmenu="onOpenNodeContextMenu"
 				@update="onUpdateNodeParameters"
+				@update:inputs="onUpdateNodeInputs"
+				@update:outputs="onUpdateNodeOutputs"
 				@move="onUpdateNodePosition"
 				@add="onClickNodeAdd"
-			/>
+			>
+				<template v-if="$slots.nodeToolbar" #toolbar="toolbarProps">
+					<slot name="nodeToolbar" v-bind="toolbarProps" />
+				</template>
+			</Node>
 		</template>
 
 		<template #edge-canvas-edge="edgeProps">
@@ -675,7 +801,7 @@ provide(CanvasKey, {
 				:bring-to-front="edgesBringToFrontById[edgeProps.id]"
 				@add="onClickConnectionAdd"
 				@delete="onDeleteConnection"
-				@update:hovered="onUpdateEdgeHovered(edgeProps.id, $event)"
+				@update:label:hovered="onUpdateEdgeLabelHovered(edgeProps.id, $event)"
 			/>
 		</template>
 
@@ -685,11 +811,7 @@ provide(CanvasKey, {
 
 		<CanvasArrowHeadMarker :id="arrowHeadMarkerId" />
 
-		<Background data-test-id="canvas-background" pattern-color="#aaa" :gap="GRID_SIZE">
-			<template v-if="readOnly" #pattern-container>
-				<CanvasBackgroundStripedPattern :x="viewport.x" :y="viewport.y" :zoom="viewport.zoom" />
-			</template>
-		</Background>
+		<CanvasBackground :viewport="viewport" :striped="readOnly" />
 
 		<Transition name="minimap">
 			<MiniMap
@@ -713,7 +835,6 @@ provide(CanvasKey, {
 			:class="$style.canvasControls"
 			:position="controlsPosition"
 			:show-interactive="false"
-			:show-bug-reporting-button="showBugReportingButton"
 			:zoom="viewport.zoom"
 			@zoom-to-fit="onFitView"
 			@zoom-in="onZoomIn"
@@ -729,7 +850,10 @@ provide(CanvasKey, {
 
 <style lang="scss" module>
 .canvas {
+	width: 100%;
+	height: 100%;
 	opacity: 0;
+	transition: opacity 300ms ease;
 
 	&.ready {
 		opacity: 1;

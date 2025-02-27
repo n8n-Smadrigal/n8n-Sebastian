@@ -14,7 +14,8 @@ defineOptions({
 const emit = defineEmits<{
 	update: [parameters: Record<string, unknown>];
 	move: [position: XYPosition];
-	dblclick: [event: MouseEvent];
+	activate: [id: string];
+	deactivate: [id: string];
 	'open:contextmenu': [event: MouseEvent];
 }>();
 
@@ -58,16 +59,20 @@ function onInputChange(value: string) {
 	});
 }
 
-function onEdit(edit: boolean) {
-	isActive.value = edit;
-}
+function onSetActive(value: boolean) {
+	if (isActive.value === value) return;
 
-function onDoubleClick(event: MouseEvent) {
-	emit('dblclick', event);
+	isActive.value = value;
+
+	if (value) {
+		emit('activate', id.value);
+	} else {
+		emit('deactivate', id.value);
+	}
 }
 
 function onActivate() {
-	onEdit(true);
+	onSetActive(true);
 }
 
 /**
@@ -83,11 +88,11 @@ function openContextMenu(event: MouseEvent) {
  */
 
 onMounted(() => {
-	eventBus.value?.on('update:node:active', onActivate);
+	eventBus.value?.on('update:node:activated', onActivate);
 });
 
 onBeforeUnmount(() => {
-	eventBus.value?.off('update:node:active', onActivate);
+	eventBus.value?.off('update:node:activated', onActivate);
 });
 </script>
 <template>
@@ -103,14 +108,15 @@ onBeforeUnmount(() => {
 		v-bind="$attrs"
 		:id="id"
 		:class="classes"
-		data-test-id="canvas-sticky-note-node"
+		data-test-id="sticky"
 		:height="renderOptions.height"
 		:width="renderOptions.width"
 		:model-value="renderOptions.content"
 		:background-color="renderOptions.color"
 		:edit-mode="isActive"
-		@edit="onEdit"
-		@dblclick="onDoubleClick"
+		:read-only="isReadOnly"
+		@edit="onSetActive"
+		@dblclick.stop="onActivate"
 		@update:model-value="onInputChange"
 		@contextmenu="openContextMenu"
 	/>

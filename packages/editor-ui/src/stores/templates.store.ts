@@ -12,7 +12,7 @@ import type {
 } from '@/Interface';
 import { useSettingsStore } from './settings.store';
 import * as templatesApi from '@/api/templates';
-import { getFixedNodesList } from '@/utils/nodeViewUtils';
+import { getNodesWithNormalizedPosition } from '@/utils/nodeViewUtils';
 import { useRootStore } from '@/stores/root.store';
 import { useUsersStore } from './users.store';
 import { useWorkflowsStore } from './workflows.store';
@@ -166,6 +166,10 @@ export const useTemplatesStore = defineStore(STORES.TEMPLATES, () => {
 		() =>
 			`${TEMPLATES_URLS.BASE_WEBSITE_URL}?${websiteTemplateRepositoryParameters.value.toString()}`,
 	);
+
+	const constructTemplateRepositoryURL = (params: URLSearchParams): string => {
+		return `${TEMPLATES_URLS.BASE_WEBSITE_URL}?${params.toString()}`;
+	};
 
 	const addCategories = (_categories: ITemplatesCategory[]): void => {
 		categories.value = _categories;
@@ -395,7 +399,9 @@ export const useTemplatesStore = defineStore(STORES.TEMPLATES, () => {
 	): Promise<IWorkflowTemplate | undefined> => {
 		const template = await getWorkflowTemplate(templateId);
 		if (template?.workflow?.nodes) {
-			template.workflow.nodes = getFixedNodesList(template.workflow.nodes) as INodeUi[];
+			template.workflow.nodes = getNodesWithNormalizedPosition(
+				template.workflow.nodes,
+			) as INodeUi[];
 			template.workflow.nodes?.forEach((node) => {
 				if (node.credentials) {
 					delete node.credentials;
@@ -427,6 +433,7 @@ export const useTemplatesStore = defineStore(STORES.TEMPLATES, () => {
 		isSearchFinished,
 		hasCustomTemplatesHost,
 		websiteTemplateRepositoryURL,
+		constructTemplateRepositoryURL,
 		websiteTemplateRepositoryParameters,
 		addCategories,
 		addCollections,

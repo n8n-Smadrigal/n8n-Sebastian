@@ -78,7 +78,7 @@ export const getResolvableState = (error: unknown, ignoreError = false): Resolva
 	return 'invalid';
 };
 
-export const getExpressionErrorMessage = (error: Error): string => {
+export const getExpressionErrorMessage = (error: Error, nodeHasRunData = false): string => {
 	if (isNoExecDataExpressionError(error) || isPairedItemIntermediateNodesError(error)) {
 		return i18n.baseText('expressionModalInput.noExecutionData');
 	}
@@ -109,19 +109,24 @@ export const getExpressionErrorMessage = (error: Error): string => {
 	}
 
 	if (isAnyPairedItemError(error)) {
-		return i18n.baseText('expressionModalInput.pairedItemError');
+		return nodeHasRunData
+			? i18n.baseText('expressionModalInput.pairedItemError')
+			: i18n.baseText('expressionModalInput.pairedItemError.noRunData');
 	}
 
 	return error.message;
 };
 
-export const stringifyExpressionResult = (result: Result<unknown, Error>): string => {
+export const stringifyExpressionResult = (
+	result: Result<unknown, Error>,
+	nodeHasRunData = false,
+): string => {
 	if (!result.ok) {
 		if (getResolvableState(result.error) !== 'invalid') {
 			return '';
 		}
 
-		return `[${i18n.baseText('parameterInput.error')}: ${getExpressionErrorMessage(result.error)}]`;
+		return `[${i18n.baseText('parameterInput.error')}: ${getExpressionErrorMessage(result.error, nodeHasRunData)}]`;
 	}
 
 	if (result.result === null) {
@@ -133,4 +138,22 @@ export const stringifyExpressionResult = (result: Result<unknown, Error>): strin
 	}
 
 	return typeof result.result === 'string' ? result.result : String(result.result);
+};
+
+export const completeExpressionSyntax = <T>(value: T) => {
+	if (typeof value === 'string' && !value.startsWith('=')) {
+		if (value.endsWith('{{ ')) return '=' + value + ' }}';
+		if (value.endsWith('{{$')) return '=' + value.slice(0, -1) + ' $ }}';
+	}
+
+	return value;
+};
+
+export const isStringWithExpressionSyntax = <T>(value: T): boolean => {
+	return (
+		typeof value === 'string' &&
+		!value.startsWith('=') &&
+		value.includes('{{') &&
+		value.includes('}}')
+	);
 };

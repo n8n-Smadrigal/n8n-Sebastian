@@ -4,7 +4,6 @@ import {
 	NodeConnectionType,
 	type IRunData,
 	type IRunExecutionData,
-	type NodeError,
 	type Workflow,
 } from 'n8n-workflow';
 import RunData from './RunData.vue';
@@ -22,6 +21,9 @@ import { useTelemetry } from '@/composables/useTelemetry';
 import { useI18n } from '@/composables/useI18n';
 import { waitingNodeTooltip } from '@/utils/executionUtils';
 import { N8nRadioButtons, N8nText } from 'n8n-design-system';
+import { useSettingsStore } from '@/stores/settings.store';
+import { useNodeDirtiness } from '@/composables/useNodeDirtiness';
+import { CanvasNodeDirtiness } from '@/types';
 
 // Types
 
@@ -76,6 +78,8 @@ const uiStore = useUIStore();
 const telemetry = useTelemetry();
 const i18n = useI18n();
 const { activeNode } = storeToRefs(ndvStore);
+const settings = useSettingsStore();
+const { dirtinessByName } = useNodeDirtiness();
 
 // Composables
 
@@ -120,14 +124,17 @@ const hasAiMetadata = computed(() => {
 	return false;
 });
 
+const hasError = computed(() =>
+	Boolean(
+		workflowRunData.value &&
+			node.value &&
+			workflowRunData.value[node.value.name]?.[props.runIndex]?.error,
+	),
+);
+
 // Determine the initial output mode to logs if the node has an error and the logs are available
 const defaultOutputMode = computed<OutputType>(() => {
-	const hasError =
-		workflowRunData.value &&
-		node.value &&
-		(workflowRunData.value[node.value.name]?.[props.runIndex]?.error as NodeError);
-
-	return Boolean(hasError) && hasAiMetadata.value ? OUTPUT_TYPE.LOGS : OUTPUT_TYPE.REGULAR;
+	return hasError.value && hasAiMetadata.value ? OUTPUT_TYPE.LOGS : OUTPUT_TYPE.REGULAR;
 });
 
 const isNodeRunning = computed(() => {
@@ -199,6 +206,11 @@ const staleData = computed(() => {
 	if (!node.value) {
 		return false;
 	}
+
+	if (settings.partialExecutionVersion === 2) {
+		return dirtinessByName.value[node.value.name] === CanvasNodeDirtiness.PARAMETERS_UPDATED;
+	}
+
 	const updatedAt = workflowsStore.getParametersLastUpdate(node.value.name);
 	if (!updatedAt || !runTaskData.value) {
 		return false;
@@ -216,7 +228,7 @@ const canPinData = computed(() => {
 });
 
 const allToolsWereUnusedNotice = computed(() => {
-	if (!node.value || runsCount.value === 0) return undefined;
+	if (!node.value || runsCount.value === 0 || hasError.value) return undefined;
 
 	// With pinned data there's no clear correct answer for whether
 	// we should use historic or current parents, so we don't show the notice,
@@ -350,7 +362,11 @@ const activatePane = () => {
 					{{ i18n.baseText(outputPanelEditMode.enabled ? 'ndv.output.edit' : 'ndv.output') }}
 				</span>
 				<RunInfo
-					v-if="hasNodeRun && !pinnedData.hasData.value && runsCount === 1"
+					v-if="
+						hasNodeRun &&
+						!pinnedData.hasData.value &&
+						(runsCount === 1 || (runsCount > 0 && staleData))
+					"
 					v-show="!outputPanelEditMode.enabled"
 					:task-data="runTaskData"
 					:has-stale-data="staleData"
